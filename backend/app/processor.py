@@ -99,6 +99,7 @@ def process_workbook(content: bytes) -> bytes:
     ws.insert_rows(1)
     shift_table_rows(ws, 1, 1)
     build_asset_report_header(ws)
+    update_table2_count_formulas(ws)
 
     # Conditional formatting for Unit Expiration Date and Quarter columns
     table1_ref = get_table_ref(ws, "Table1") or table1_ref
@@ -445,6 +446,16 @@ def compute_quarter_counts(ws, quarter_col: int) -> List[Tuple[str, int]]:
             continue
         counts[value] = counts.get(value, 0) + 1
     return sorted(counts.items())
+
+
+def update_table2_count_formulas(ws) -> None:
+    table_ref = get_table_ref(ws, "Table2")
+    if not table_ref:
+        return
+    ref = parse_ref(table_ref)
+    key_col_letter = get_column_letter(ref.start_col)
+    for row in range(ref.start_row + 1, ref.end_row + 1):
+        ws.cell(row=row, column=ref.end_col).value = f"=COUNTIF(B:B,{key_col_letter}{row})"
 
 
 def write_quarter_counts(ws, counts: List[Tuple[str, int]], start_col: int, start_row: int) -> None:
