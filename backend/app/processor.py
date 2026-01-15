@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from io import BytesIO
 import re
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from openpyxl import load_workbook
 from openpyxl.formatting.rule import Rule
@@ -257,37 +257,6 @@ def sort_table_by_date(ws, ref: str, date_col: int) -> None:
         for offset, value in enumerate(row_values):
             ws.cell(row=idx, column=ref_obj.start_col + offset).value = value
 
-
-def sort_table_by_band_color(ws, ref: str, date_col: int) -> None:
-    ref_obj = parse_ref(ref)
-    current_year = datetime.now().year
-    data_rows = []
-    for row in range(ref_obj.start_row + 1, ref_obj.end_row + 1):
-        row_values = [ws.cell(row=row, column=col).value for col in range(ref_obj.start_col, ref_obj.end_col + 1)]
-        dt = parse_date(ws.cell(row=row, column=date_col).value)
-        band = band_key_for_year(dt, current_year)
-        data_rows.append((band, row_values))
-
-    data_rows.sort(key=lambda item: item[0])
-
-    for idx, (_, row_values) in enumerate(data_rows, start=ref_obj.start_row + 1):
-        for offset, value in enumerate(row_values):
-            ws.cell(row=idx, column=ref_obj.start_col + offset).value = value
-
-
-def band_key_for_year(date_value: Optional[datetime], current_year: int) -> int:
-    if date_value is None:
-        return 0
-    year = date_value.year
-    if year < current_year:
-        return 0
-    if year >= current_year + 2:
-        return 1
-    if year == current_year + 1:
-        return 2
-    return 3
-
-
 def date_to_quarter(value) -> str:
     dt = parse_date(value)
     if dt is None:
@@ -480,7 +449,6 @@ def write_quarter_counts(ws, counts: List[Tuple[str, int]], start_col: int, star
 
 def build_asset_report_header(ws) -> None:
     title_fill = PatternFill(fill_type="solid", fgColor="FF366092")
-    green_fill = PatternFill(fill_type="solid", fgColor="FF9BBB59")
     white_font = Font(name="Calibri", size=18, color="FFFFFFFF", bold=True)
     header_font = Font(name="Calibri", size=18, color="FFFFFFFF", bold=True)
     center = Alignment(horizontal="center", vertical="center")
