@@ -44,7 +44,7 @@ def process_workbook(content: bytes) -> bytes:
     clear_tables(ws)
 
     table1_ref = f"A1:E{last_row}"
-    add_table(ws, "Table1", table1_ref, style_name="TableStyleMedium2")
+    add_table(ws, "Asset_Report", table1_ref, style_name="TableStyleMedium2")
 
     unmerge_row(ws, 1)
 
@@ -64,7 +64,7 @@ def process_workbook(content: bytes) -> bytes:
         ws.cell(row=row, column=8).value = counts.get(key, 0)
 
     table2_ref = f"G1:H{last_row_g}"
-    add_table(ws, "Table2", table2_ref, style_name="TableStyleMedium10")
+    add_table(ws, "Asset_Count", table2_ref, style_name="TableStyleMedium10")
     sort_table_by_column(ws, table2_ref, sort_col=8, header_row=1, reverse=True)
 
     # Locate Unit Expiration Date column
@@ -83,16 +83,16 @@ def process_workbook(content: bytes) -> bytes:
         cell = ws.cell(row=row, column=unit_exp_col)
         ws.cell(row=row, column=quarter_col).value = date_to_quarter(cell.value)
 
-    # Update Table1 range to include new Quarter column
+    # Update Asset_Report range to include new Quarter column
     table1_ref = expand_table_range(table1_ref, insert_at)
-    update_table_ref(ws, "Table1", table1_ref)
+    update_table_ref(ws, "Asset_Report", table1_ref)
 
     # Quarter_Count output to K:L
     quarter_counts = compute_quarter_counts(ws, quarter_col)
     write_quarter_counts(ws, quarter_counts, start_col=11, start_row=1)
 
-    # Sort Table1 by Unit Expiration Date ascending after all column changes
-    table1_ref = get_table_ref(ws, "Table1") or table1_ref
+    # Sort Asset_Report by Unit Expiration Date ascending after all column changes
+    table1_ref = get_table_ref(ws, "Asset_Report") or table1_ref
     sort_table_by_date(ws, table1_ref, unit_exp_col)
 
     # Build header row
@@ -102,7 +102,7 @@ def process_workbook(content: bytes) -> bytes:
     update_table2_count_formulas(ws)
 
     # Conditional formatting for Unit Expiration Date and Quarter columns
-    table1_ref = get_table_ref(ws, "Table1") or table1_ref
+    table1_ref = get_table_ref(ws, "Asset_Report") or table1_ref
     apply_unit_expiration_conditional_formatting(ws, table1_ref, unit_exp_col, quarter_col)
 
     # Column widths and alignment
@@ -449,7 +449,7 @@ def compute_quarter_counts(ws, quarter_col: int) -> List[Tuple[str, int]]:
 
 
 def update_table2_count_formulas(ws) -> None:
-    table_ref = get_table_ref(ws, "Table2")
+    table_ref = get_table_ref(ws, "Asset_Count")
     if not table_ref:
         return
     ref = parse_ref(table_ref)
@@ -469,8 +469,8 @@ def write_quarter_counts(ws, counts: List[Tuple[str, int]], start_col: int, star
 
     last_row = start_row + len(counts)
     table_ref = f"{get_column_letter(start_col)}{start_row}:{get_column_letter(start_col + 1)}{last_row}"
-    add_table(ws, "QuarterCounts", table_ref, style_name="TableStyleMedium12")
-    table = ws.tables.get("QuarterCounts")
+    add_table(ws, "Renewal_Schedule", table_ref, style_name="TableStyleMedium12")
+    table = ws.tables.get("Renewal_Schedule")
     if table:
         header_range = f"{get_column_letter(start_col)}{start_row}:{get_column_letter(start_col + 1)}{start_row}"
         for row in ws[header_range]:
